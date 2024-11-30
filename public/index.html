@@ -3,17 +3,25 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Frontend</title>
-    <link rel="stylesheet" href="styles.css">
+    <title>Authentication</title>
+    <link rel="stylesheet" href="style.css">
 </head>
 <body>
-    <h1>Welcome to the Frontend</h1>
-    <form id="registerForm">
-        <input type="text" id="name" placeholder="Name" required>
-        <input type="email" id="email" placeholder="Email" required>
-        <input type="password" id="password" placeholder="Password" required>
-        <button type="submit">Register</button>
-    </form>
+    <div id="app">
+        <div id="loginPage">
+            <h2>Login</h2>
+            <form id="loginForm">
+                <input type="email" id="loginEmail" placeholder="Email" required>
+                <input type="password" id="loginPassword" placeholder="Password" required>
+                <button type="submit">Login</button>
+            </form>
+        </div>
+        <div id="profilePage" style="display: none;">
+            <h2>Welcome, <span id="userName"></span></h2>
+            <p>Email: <span id="userEmail"></span></p>
+            <button id="logoutButton">Logout</button>
+        </div>
+    </div>
     <script src="script.js"></script>
 </body>
 </html>

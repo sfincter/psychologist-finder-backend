@@ -35,3 +35,9 @@ mongoose.connect('mongodb://127.0.0.1:27017/psychologists', {
 
 // Запуск сервера
 app.listen(5000, () => console.log('Server is running on port 5000'));
+
+app.use((err, req, res, next) => {
+  console.error(err.stack); // Логи в консоль Railway
+  res.status(500).send('Something broke!');
+});
+

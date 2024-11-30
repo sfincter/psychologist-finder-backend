@@ -9,9 +9,6 @@ const authRoutes = require('./routes/auth');
 // Создание приложения
 const app = express();
 
-// Мидлвэры
-const cors = require('cors');
-
 // Настройка CORS
 app.use(cors({
     origin: 'https://ваш-домен.netlify.app', // Замените на URL вашего фронтенда

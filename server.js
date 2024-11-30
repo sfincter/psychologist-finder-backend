@@ -1,43 +1,34 @@
 const express = require('express');
-const mongoose = require('mongoose');
 const cors = require('cors');
-const bodyParser = require('body-parser');
+const mongoose = require('mongoose');
+const path = require('path');
 
-// Импорт маршрутов
-const authRoutes = require('./routes/auth');
-
-// Создание приложения
 const app = express();
+const PORT = process.env.PORT || 5000;
 
-// Настройка CORS
-// app.use(cors({
-//     origin: 'https://ваш-домен.netlify.app', // Замените на URL вашего фронтенда
-//     methods: ['GET', 'POST', 'PUT', 'DELETE'],
-//     credentials: true, // Если нужны куки или авторизация
-// }));
+// Middleware
+app.use(cors());
+app.use(express.json());
 
-app.use(bodyParser.json());
+// Подключение к базе данных
+mongoose.connect(process.env.MONGO_URI, { useNewUrlParser: true, useUnifiedTopology: true })
+  .then(() => console.log('Connected to MongoDB'))
+  .catch(err => console.error('MongoDB connection error:', err));
 
-// Подключение маршрутов
-app.use('/auth', authRoutes);
-
-// Обработка ошибок для несуществующих маршрутов
-app.use((req, res) => {
-  res.status(404).json({ error: 'Route not found' });
+// Пример маршрута
+app.post('/register', (req, res) => {
+    // Логика регистрации пользователя
+    res.send({ message: 'User registered successfully!' });
 });
 
-// Подключение к MongoDB
-mongoose.connect('mongodb://127.0.0.1:27017/psychologists', {
-  useNewUrlParser: true,
-  useUnifiedTopology: true,
-}).then(() => console.log('Connected to MongoDB'))
-  .catch((err) => console.error('MongoDB connection error:', err));
+// Обслуживание статических файлов
+app.use(express.static(path.join(__dirname, 'public')));
 
-// Запуск сервера
-app.listen(5000, () => console.log('Server is running on port 5000'));
-
-app.use((err, req, res, next) => {
-  console.error(err.stack); // Логи в консоль Railway
-  res.status(500).send('Something broke!');
+// Обработка всех маршрутов
+app.get('*', (req, res) => {
+    res.sendFile(path.join(__dirname, 'public', 'index.html'));
 });
 
+app.listen(PORT, () => {
+    console.log(`Server running on port ${PORT}`);
+});

@@ -1,108 +1,98 @@
-const express = require('express');
-const mongoose = require('mongoose');
-const cors = require('cors');
-const bcrypt = require('bcryptjs');
-const jwt = require('jsonwebtoken');
-const path = require('path');
+const apiUrl = 'https://your-backend-url.railway.app'; // URL вашего бэкенда
 
-const app = express();
-const PORT = process.env.PORT || 5000;
-const JWT_SECRET = process.env.JWT_SECRET || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyfQ.SflKxwRJSMeKKF2QT4fwpMeJf36POk6yJV_adQssw5c';
-
-// Middleware
-app.use(cors());
-app.use(express.json());
-
-// MongoDB connection
-mongoose.connect(process.env.MONGO_URI, { useNewUrlParser: true, useUnifiedTopology: true })
-  .then(() => console.log('Connected to MongoDB'))
-  .catch(err => console.error('MongoDB connection error:', err));
-
-// User model
-const userSchema = new mongoose.Schema({
-  name: String,
-  email: { type: String, unique: true },
-  password: String,
-});
-const User = mongoose.model('User', userSchema);
-
-// Registration route
-app.post('/register', async (req, res) => {
-  const { name, email, password } = req.body;
-  if (!name || !email || !password) {
-    return res.status(400).send({ error: 'All fields are required' });
-  }
-
-  const hashedPassword = await bcrypt.hash(password, 10);
-  const user = new User({ name, email, password: hashedPassword });
-
-  try {
-    await user.save();
-    res.status(201).send({ message: 'User registered successfully' });
-  } catch (error) {
-    res.status(400).send({ error: 'Registration failed' });
-  }
+// Switch between forms
+document.getElementById('toLogin').addEventListener('click', () => {
+    document.getElementById('registerPage').style.display = 'none';
+    document.getElementById('loginPage').style.display = 'block';
 });
 
-// Login route
-app.post('/login', async (req, res) => {
-  const { email, password } = req.body;
+document.getElementById('toRegister').addEventListener('click', () => {
+    document.getElementById('loginPage').style.display = 'none';
+    document.getElementById('registerPage').style.display = 'block';
+});
 
-  if (!email || !password) {
-    return res.status(400).send({ error: 'All fields are required' });
-  }
+// Registration form handler
+document.getElementById('registerForm').addEventListener('submit', async (event) => {
+    event.preventDefault();
 
-  try {
-    const user = await User.findOne({ email });
-    if (!user) {
-      return res.status(404).send({ error: 'User not found' });
+    const name = document.getElementById('registerName').value;
+    const email = document.getElementById('registerEmail').value;
+    const password = document.getElementById('registerPassword').value;
+
+    try {
+        const response = await fetch(`${apiUrl}/register`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ name, email, password }),
+        });
+
+        const result = await response.json();
+        if (response.ok) {
+            alert('Registration successful! Please log in.');
+            document.getElementById('registerPage').style.display = 'none';
+            document.getElementById('loginPage').style.display = 'block';
+        } else {
+            alert(result.error);
+        }
+    } catch (error) {
+        alert('Error connecting to server.');
     }
+});
 
-    const isPasswordValid = await bcrypt.compare(password, user.password);
-    if (!isPasswordValid) {
-      return res.status(401).send({ error: 'Invalid password' });
+// Login form handler
+document.getElementById('loginForm').addEventListener('submit', async (event) => {
+    event.preventDefault();
+
+    const email = document.getElementById('loginEmail').value;
+    const password = document.getElementById('loginPassword').value;
+
+    try {
+        const response = await fetch(`${apiUrl}/login`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ email, password }),
+        });
+
+        const result = await response.json();
+        if (response.ok) {
+            localStorage.setItem('token', result.token);
+            document.getElementById('userName').textContent = result.name;
+            document.getElementById('userEmail').textContent = result.email;
+
+            document.getElementById('loginPage').style.display = 'none';
+            document.getElementById('profilePage').style.display = 'block';
+        } else {
+            alert(result.error);
+        }
+    } catch (error) {
+        alert('Error connecting to server.');
     }
-
-    const token = jwt.sign({ id: user._id, email: user.email }, JWT_SECRET, { expiresIn: '1h' });
-    res.status(200).send({ token, name: user.name, email: user.email });
-  } catch (error) {
-    res.status(500).send({ error: 'Login failed' });
-  }
 });
 
-// Middleware to authenticate user by token
-const authenticateToken = (req, res, next) => {
-  const token = req.headers['authorization'];
-  if (!token) {
-    return res.status(401).send({ error: 'Unauthorized' });
-  }
-
-  jwt.verify(token, JWT_SECRET, (err, user) => {
-    if (err) {
-      return res.status(403).send({ error: 'Forbidden' });
-    }
-    req.user = user;
-    next();
-  });
-};
-
-// Protected route to get user details
-app.get('/profile', authenticateToken, async (req, res) => {
-  const user = await User.findById(req.user.id).select('-password');
-  if (!user) {
-    return res.status(404).send({ error: 'User not found' });
-  }
-
-  res.send(user);
+// Logout handler
+document.getElementById('logoutButton').addEventListener('click', () => {
+    localStorage.removeItem('token');
+    document.getElementById('profilePage').style.display = 'none';
+    document.getElementById('loginPage').style.display = 'block';
 });
 
-// Serve static files (frontend)
-app.use(express.static(path.join(__dirname, 'public')));
+// Auto-login if token exists
+const token = localStorage.getItem('token');
+if (token) {
+    fetch(`${apiUrl}/profile`, {
+        headers: { 'Authorization': token },
+    })
+        .then(response => response.json())
+        .then(user => {
+            if (user.name && user.email) {
+                document.getElementById('userName').textContent = user.name;
+                document.getElementById('userEmail').textContent = user.email;
 
-app.get('*', (req, res) => {
-  res.sendFile(path.join(__dirname, 'public', 'index.html'));
-});
-
-app.listen(PORT, () => {
-  console.log(`Server running on port ${PORT}`);
-});
+                document.getElementById('loginPage').style.display = 'none';
+                document.getElementById('profilePage').style.display = 'block';
+            }
+        })
+        .catch(() => {
+            localStorage.removeItem('token');
+        });
+}

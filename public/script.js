@@ -1,4 +1,4 @@
-const apiUrl = 'https://your-backend-url.up.railway.app'; // URL бэкенда (измените на актуальный)
+const apiUrl = 'https://psychologist-finder-backend-production.up.railway.app'; // URL бэкенда (измените на актуальный)
 
 async function registerUser(event) {
     event.preventDefault();

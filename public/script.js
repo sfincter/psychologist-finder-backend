@@ -1,4 +1,4 @@
-const apiUrl = 'https://your-backend-url.railway.app'; // URL вашего бэкенда
+const apiUrl = 'https://psychologist-finder-backend-production.up.railway.app'; // URL вашего бэкенда
 
 // Login form handler
 document.getElementById('loginForm').addEventListener('submit', async (event) => {

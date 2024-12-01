@@ -13,7 +13,7 @@ app.use((req, res, next) => {
 app.use(express.json());
 app.use(cors({
     origin: 'https://psychologist-finder-frontend-production.up.railway.app', // Можно заменить на адрес фронтенда, если он известен
-    methods: ['GET', 'POST'],
+    methods: ['GET', 'POST', 'OPTIONS'],
     allowedHeaders: ['Content-Type', 'Authorization'],
 }));
 

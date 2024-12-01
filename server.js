@@ -1,101 +1,77 @@
-const apiUrl = 'https://psychologist-finder-backend-production.up.railway.app'; // URL вашего бэкенда
+const express = require('express');
+const mongoose = require('mongoose');
+const cors = require('cors');
+const bcrypt = require('bcrypt');
+const jwt = require('jsonwebtoken');
 
+const app = express();
+app.use(express.json());
+app.use(cors());
 
-document.addEventListener('DOMContentLoaded', () => {
-// Switch between forms
-document.getElementById('toLogin').addEventListener('click', () => {
-    document.getElementById('registerPage').style.display = 'none';
-    document.getElementById('loginPage').style.display = 'block';
+const UserSchema = new mongoose.Schema({
+    name: String,
+    email: String,
+    password: String,
 });
 
-document.getElementById('toRegister').addEventListener('click', () => {
-    document.getElementById('loginPage').style.display = 'none';
-    document.getElementById('registerPage').style.display = 'block';
-});
+const User = mongoose.model('User', UserSchema);
 
-// Registration form handler
-document.getElementById('registerForm').addEventListener('submit', async (event) => {
-    event.preventDefault();
-
-    const name = document.getElementById('registerName').value;
-    const email = document.getElementById('registerEmail').value;
-    const password = document.getElementById('registerPassword').value;
-
-    try {
-        const response = await fetch(`${apiUrl}/register`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ name, email, password }),
-        });
-
-        const result = await response.json();
-        if (response.ok) {
-            alert('Registration successful! Please log in.');
-            document.getElementById('registerPage').style.display = 'none';
-            document.getElementById('loginPage').style.display = 'block';
-        } else {
-            alert(result.error);
-        }
-    } catch (error) {
-        alert('Error connecting to server.');
-    }
-});
-
-// Login form handler
-document.getElementById('loginForm').addEventListener('submit', async (event) => {
-    event.preventDefault();
-
-    const email = document.getElementById('loginEmail').value;
-    const password = document.getElementById('loginPassword').value;
-
-    try {
-        const response = await fetch(`${apiUrl}/login`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ email, password }),
-        });
-
-        const result = await response.json();
-        if (response.ok) {
-            localStorage.setItem('token', result.token);
-            document.getElementById('userName').textContent = result.name;
-            document.getElementById('userEmail').textContent = result.email;
-
-            document.getElementById('loginPage').style.display = 'none';
-            document.getElementById('profilePage').style.display = 'block';
-        } else {
-            alert(result.error);
-        }
-    } catch (error) {
-        alert('Error connecting to server.');
-    }
-});
-
-// Logout handler
-document.getElementById('logoutButton').addEventListener('click', () => {
-    localStorage.removeItem('token');
-    document.getElementById('profilePage').style.display = 'none';
-    document.getElementById('loginPage').style.display = 'block';
-});
-
-// Auto-login if token exists
-const token = localStorage.getItem('token');
-if (token) {
-    fetch(`${apiUrl}/profile`, {
-        headers: { 'Authorization': token },
+mongoose
+    .connect(process.env.MONGO_URI, {
+        useNewUrlParser: true,
+        useUnifiedTopology: true,
     })
-        .then(response => response.json())
-        .then(user => {
-            if (user.name && user.email) {
-                document.getElementById('userName').textContent = user.name;
-                document.getElementById('userEmail').textContent = user.email;
+    .then(() => console.log('MongoDB connected'))
+    .catch(err => console.error('MongoDB connection error:', err));
 
-                document.getElementById('loginPage').style.display = 'none';
-                document.getElementById('profilePage').style.display = 'block';
-            }
-        })
-        .catch(() => {
-            localStorage.removeItem('token');
+// Routes
+app.post('/register', async (req, res) => {
+    try {
+        const hashedPassword = await bcrypt.hash(req.body.password, 10);
+        const user = new User({
+            name: req.body.name,
+            email: req.body.email,
+            password: hashedPassword,
         });
-}
+        await user.save();
+        res.status(201).json({ message: 'User registered successfully' });
+    } catch (err) {
+        res.status(500).json({ error: 'Error registering user' });
+    }
+});
+
+app.post('/login', async (req, res) => {
+    try {
+        const user = await User.findOne({ email: req.body.email });
+        if (!user) return res.status(404).json({ error: 'User not found' });
+
+        const isPasswordValid = await bcrypt.compare(req.body.password, user.password);
+        if (!isPasswordValid) return res.status(401).json({ error: 'Invalid credentials' });
+
+        const token = jwt.sign({ id: user._id, email: user.email }, process.env.JWT_SECRET, {
+            expiresIn: '1h',
+        });
+        res.json({ token });
+    } catch (err) {
+        res.status(500).json({ error: 'Error logging in user' });
+    }
+});
+
+app.get('/profile', async (req, res) => {
+    const token = req.headers.authorization?.split(' ')[1];
+    if (!token) return res.status(401).json({ error: 'Unauthorized' });
+
+    try {
+        const decoded = jwt.verify(token, process.env.JWT_SECRET);
+        const user = await User.findById(decoded.id);
+        if (!user) return res.status(404).json({ error: 'User not found' });
+
+        res.json({ name: user.name, email: user.email });
+    } catch (err) {
+        res.status(401).json({ error: 'Unauthorized' });
+    }
+});
+
+app.listen(process.env.PORT || 3000, () => {
+    console.log('Server is running on port', process.env.PORT || 3000);
 });

@@ -76,6 +76,11 @@ app.get('/profile', async (req, res) => {
     }
 });
 
+app.get('/', (req, res) => {
+    res.send('Welcome to the Psychologist Finder Backend');
+});
+
+
 // Запуск сервера
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {

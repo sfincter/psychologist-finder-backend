@@ -1,4 +1,4 @@
-const API_URL = "https://psychologist-finder-backend-production.up.railway.app"; // Замените на реальный URL сервера
+const API_URL = "https://psychologist-finder-backend-production.up.railway.app";
 
 document.getElementById('registerBtn').addEventListener('click', async () => {
     const name = document.getElementById('name').value;
@@ -16,11 +16,11 @@ document.getElementById('registerBtn').addEventListener('click', async () => {
         if (response.ok) {
             alert('Registration successful');
         } else {
-            alert(result.error);
+            alert(result.error || 'Registration failed');
         }
     } catch (err) {
-        console.error('Error registering user:', err);
-        alert('An error occurred during registration.');
+        console.error('Error:', err);
+        alert('An error occurred.');
     }
 });
 
@@ -40,11 +40,11 @@ document.getElementById('loginBtn').addEventListener('click', async () => {
             localStorage.setItem('token', result.token);
             alert('Login successful');
         } else {
-            alert(result.error);
+            alert(result.error || 'Login failed');
         }
     } catch (err) {
-        console.error('Error logging in user:', err);
-        alert('An error occurred during login.');
+        console.error('Error:', err);
+        alert('An error occurred.');
     }
 });
 
@@ -64,10 +64,10 @@ document.getElementById('profileBtn').addEventListener('click', async () => {
         if (response.ok) {
             alert(`Name: ${result.name}, Email: ${result.email}`);
         } else {
-            alert(result.error);
+            alert(result.error || 'Failed to fetch profile');
         }
     } catch (err) {
-        console.error('Error fetching profile:', err);
-        alert('An error occurred while fetching profile.');
+        console.error('Error:', err);
+        alert('An error occurred.');
     }
 });

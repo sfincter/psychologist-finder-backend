@@ -7,7 +7,11 @@ require('dotenv').config();
 
 const app = express();
 app.use(express.json());
-app.use(cors());
+app.use(cors({
+    origin: 'https://psychologist-finder-frontend-production.up.railway.app', // Можно заменить на адрес фронтенда, если он известен
+    methods: ['GET', 'POST'],
+    allowedHeaders: ['Content-Type', 'Authorization'],
+}));
 
 const UserSchema = new mongoose.Schema({
     name: String,

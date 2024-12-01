@@ -1,14 +1,35 @@
-const apiUrl = 'https://psychologist-finder-backend-production.up.railway.app'; // URL вашего бэкенда
+const API_URL = "https://psychologist-finder-backend-production.up.railway.app"; // Замените на реальный URL сервера
 
-// Login form handler
-document.getElementById('loginForm').addEventListener('submit', async (event) => {
-    event.preventDefault();
+document.getElementById('registerBtn').addEventListener('click', async () => {
+    const name = document.getElementById('name').value;
+    const email = document.getElementById('email').value;
+    const password = document.getElementById('password').value;
 
+    try {
+        const response = await fetch(`${API_URL}/register`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ name, email, password }),
+        });
+
+        const result = await response.json();
+        if (response.ok) {
+            alert('Registration successful');
+        } else {
+            alert(result.error);
+        }
+    } catch (err) {
+        console.error('Error registering user:', err);
+        alert('An error occurred during registration.');
+    }
+});
+
+document.getElementById('loginBtn').addEventListener('click', async () => {
     const email = document.getElementById('loginEmail').value;
     const password = document.getElementById('loginPassword').value;
 
     try {
-        const response = await fetch(`${apiUrl}/login`, {
+        const response = await fetch(`${API_URL}/login`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ email, password }),
@@ -16,48 +37,37 @@ document.getElementById('loginForm').addEventListener('submit', async (event) =>
 
         const result = await response.json();
         if (response.ok) {
-            // Save token to localStorage
             localStorage.setItem('token', result.token);
-
-            // Display user info
-            document.getElementById('userName').textContent = result.name;
-            document.getElementById('userEmail').textContent = result.email;
-
-            // Toggle views
-            document.getElementById('loginPage').style.display = 'none';
-            document.getElementById('profilePage').style.display = 'block';
+            alert('Login successful');
         } else {
             alert(result.error);
         }
-    } catch (error) {
-        alert('Error connecting to server.');
+    } catch (err) {
+        console.error('Error logging in user:', err);
+        alert('An error occurred during login.');
     }
 });
 
-// Logout handler
-document.getElementById('logoutButton').addEventListener('click', () => {
-    localStorage.removeItem('token');
-    document.getElementById('loginPage').style.display = 'block';
-    document.getElementById('profilePage').style.display = 'none';
-});
+document.getElementById('profileBtn').addEventListener('click', async () => {
+    const token = localStorage.getItem('token');
+    if (!token) {
+        alert('You need to log in first.');
+        return;
+    }
 
-// Auto-login if token exists
-const token = localStorage.getItem('token');
-if (token) {
-    fetch(`${apiUrl}/profile`, {
-        headers: { 'Authorization': token },
-    })
-        .then(response => response.json())
-        .then(user => {
-            if (user.name && user.email) {
-                document.getElementById('userName').textContent = user.name;
-                document.getElementById('userEmail').textContent = user.email;
-
-                document.getElementById('loginPage').style.display = 'none';
-                document.getElementById('profilePage').style.display = 'block';
-            }
-        })
-        .catch(() => {
-            localStorage.removeItem('token');
+    try {
+        const response = await fetch(`${API_URL}/profile`, {
+            headers: { Authorization: `Bearer ${token}` },
         });
-}
+
+        const result = await response.json();
+        if (response.ok) {
+            alert(`Name: ${result.name}, Email: ${result.email}`);
+        } else {
+            alert(result.error);
+        }
+    } catch (err) {
+        console.error('Error fetching profile:', err);
+        alert('An error occurred while fetching profile.');
+    }
+});

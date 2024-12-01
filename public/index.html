@@ -3,39 +3,23 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Authentication</title>
-    <link rel="stylesheet" href="styles.css">
+    <title>User Authentication</title>
 </head>
 <body>
-    <div id="app">
-      
-      <div id="registerPage">
-        <h2>Register</h2>
-        <form id="registerForm">
-            <input type="text" id="registerName" placeholder="Name" required>
-            <input type="email" id="registerEmail" placeholder="Email" required>
-            <input type="password" id="registerPassword" placeholder="Password" required>
-            <button type="submit">Register</button>
-        </form>
-        <p>Already have an account? <a id="toLogin">Login here</a></p>
-    </div>
-    
-    <div id="loginPage" style="display: none;">
-        <h2>Login</h2>
-        <form id="loginForm">
-            <input type="email" id="loginEmail" placeholder="Email" required>
-            <input type="password" id="loginPassword" placeholder="Password" required>
-            <button type="submit">Login</button>
-        </form>
-        <p>Don't have an account? <a id="toRegister">Register here</a></p>
-    </div>
-  
-        <div id="profilePage" style="display: none;">
-            <h2>Welcome, <span id="userName"></span></h2>
-            <p>Email: <span id="userEmail"></span></p>
-            <button id="logoutButton">Logout</button>
-        </div>
-    </div>
+    <h1>Register</h1>
+    <input id="name" type="text" placeholder="Name" />
+    <input id="email" type="email" placeholder="Email" />
+    <input id="password" type="password" placeholder="Password" />
+    <button id="registerBtn">Register</button>
+
+    <h1>Login</h1>
+    <input id="loginEmail" type="email" placeholder="Email" />
+    <input id="loginPassword" type="password" placeholder="Password" />
+    <button id="loginBtn">Login</button>
+
+    <h1>Profile</h1>
+    <button id="profileBtn">Get Profile</button>
+
     <script src="script.js"></script>
 </body>
 </html>

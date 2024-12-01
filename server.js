@@ -1,5 +1,7 @@
 const apiUrl = 'https://psychologist-finder-backend-production.up.railway.app'; // URL вашего бэкенда
 
+
+document.addEventListener('DOMContentLoaded', () => {
 // Switch between forms
 document.getElementById('toLogin').addEventListener('click', () => {
     document.getElementById('registerPage').style.display = 'none';
@@ -96,3 +98,4 @@ if (token) {
             localStorage.removeItem('token');
         });
 }
+});

@@ -6,6 +6,10 @@ const jwt = require('jsonwebtoken');
 require('dotenv').config();
 
 const app = express();
+app.use((req, res, next) => {
+    res.status(404).json({ error: 'Route not found' });
+});
+
 app.use(express.json());
 app.use(cors({
     origin: 'https://psychologist-finder-frontend-production.up.railway.app', // Можно заменить на адрес фронтенда, если он известен
